@@ -1,6 +1,6 @@
 # Projects
 
-ENGLISH:
+## ENGLISH:
 
 This repository works as a storage for codes and multimedia that I've created for both college and work. Two main branches are used to organize them: programming and design.
 
@@ -12,7 +12,7 @@ This repository works as a storage for codes and multimedia that I've created fo
 - In the aforementioned subject, I designed a brochure that would promote our project: "Tech Truck"
 - In the Ministry of Education of Argentina I designed an app's front end and some reports. Since their information can't be shown, a report's front page and another random one with alternative text is uploaded.
 
-SPANISH:
+## SPANISH:
 
 Este repositorio cumple la función de almacenar códigos y archivos multimedia que creé para la universidad y el trabajo. Dos ramas principales son usadas para organizarlos: programación y diseño.
 
