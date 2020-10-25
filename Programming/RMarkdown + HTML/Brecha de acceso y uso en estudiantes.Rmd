@@ -1,0 +1,367 @@
+---
+title: <center>Brecha de acceso y uso en estudiantes<center>
+author: <center>Equipo Rojo fuego<center>
+date: <center>07/2020<center>
+output: html_document
+---
+
+```{css, echo=FALSE}
+body{
+  font-family: Helvetica;
+  font-size: 11pt;
+  text-align:left
+}
+
+h1{
+  font-size: 16pt;
+  text-align:center
+}
+h2{
+  font-size: 9pt;
+  text-align:left
+}
+```
+
+$~$
+
+En el siguiente informe se estudiarán las brechas de acceso y uso en estudiantes de CABA según datos obtenidos en las pruebas Aprender 2017.
+
+$~$
+
+******
+******
+
+# **Preparación**
+
+******
+******
+
+$~$
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Corremos las librerías:
+
+```{r librerias, message = FALSE, results = FALSE}
+library(readr)
+library(tidyverse)
+library(ggplot2)
+library(plotly)
+```
+
+Bajamos los datasets que vamos a usar:
+
+```{r dataset, message = FALSE, results = FALSE, warning = FALSE}
+Aprender <- read_delim("https://media.githubusercontent.com/media/Agustin-Bulzomi/Projects/main/Programming/Support_Files/Aprender%202017%20-%20Secundaria.csv", "\t", escape_double = FALSE, trim_ws = TRUE)
+```
+
+Comenzaremos preparando los datasets y procesándolos para obtener la información que necesitamos, para finalmente presentar todos los gráficos que expongan lo analizado.
+
+$~$
+
+******
+******
+
+# **Análisis de brecha de acceso**
+
+******
+******
+
+$~$
+
+
+Primero, veamos cómo están los alumnos de CABA con respecto a la brecha de acceso: ¿Cuántos tienen computadora e internet?
+
+Filtramos por alumnos de CABA:
+
+```{r alumnos, message = FALSE, results = FALSE}
+Alumnos_CABA <- filter(Aprender, cod_provincia == 2)
+```
+
+Analizamos cuántos tienen computadora en su casa:
+
+```{r computadoras, message = FALSE, results = FALSE}
+Computadoras_CABA <- group_by(Alumnos_CABA, ap8b) %>%
+  summarise(Alumnos_con_computadora = n())
+```
+
+Ahora buscamos cuántos tienen internet en su casa:
+
+```{r internet, message = FALSE, results = FALSE}
+Internet_CABA <- group_by(Alumnos_CABA, ap7d) %>%
+  summarise(Alumnos_con_internet = n ())
+```
+
+$~$
+
+******
+******
+
+# **Análisis de brecha de uso**
+
+******
+******
+
+$~$
+
+
+En segundo lugar, veamos cuántos alumnos aseguran usar TICs en el colegio. Puesto que solo buscamos analizar los que respondieron "sí" o "no", hacemos drop_na para emprolijar el gráfico del final:
+
+```{r tics, message = FALSE, results = FALSE}
+TICs_CABA <- group_by(Alumnos_CABA, ap33b) %>%
+  summarise(Uso_TICs = n()) %>%
+  drop_na() %>%
+  filter(ap33b == 1 | ap33b == 2)
+```
+
+Ahora que tenemos el uso de las TICs en el colegio, queremos ver qué respondieron sobre la necesidad de aprender nuevas tecnologías. Solo buscamos los "sí", "no" y "en blanco".
+
+```{r tics 2, message = FALSE, results = FALSE}
+Aprender_Nuevas_Tecnologias_CABA <- group_by(Alumnos_CABA, ap37a) %>%
+  summarise(Aprender_Tecnologias = n()) %>%
+  drop_na() %>%
+  filter(ap37a == 1 | ap37a == 2 | ap37a == -9)
+```
+
+$~$
+
+******
+******
+
+# **Unión de ambas brechas**
+
+******
+******
+
+$~$
+
+En tercer lugar, queremos analizar ambas tablas en conjunto. Primero, renombramos las columnas para poder unirlas:
+
+```{r tabla, message = FALSE, results = FALSE}
+Computadoras_CABA <- rename(Computadoras_CABA, Codigos=ap8b)
+Internet_CABA <- rename(Internet_CABA, Codigos=ap7d)
+TICs_CABA <- rename(TICs_CABA, Codigos=ap33b)
+Aprender_Nuevas_Tecnologias_CABA <- rename(Aprender_Nuevas_Tecnologias_CABA, Codigos=ap37a)
+```
+
+Ahora, unimos en dos tablas distintas: una para ver la brecha de acceso a computadoras e internet...
+
+```{r tabla 2, message = FALSE, results = FALSE}
+Computadoras_Internet_CABA <- left_join(Computadoras_CABA, Internet_CABA, by="Codigos")
+```
+
+... y otra para ver el uso de TICs, en contraposición a las ganas de aprender nuevas tecnologías:
+
+```{r tabla 3, message = FALSE, results = FALSE}
+TICs_Aprender_CABA <- left_join(TICs_CABA, Aprender_Nuevas_Tecnologias_CABA, by="Codigos")
+```
+
+Luego, podemos ver los cuatro datos juntos en una sola tabla:
+
+```{r tabla 4, message = FALSE, results = FALSE}
+Final_CABA <- left_join(Computadoras_Internet_CABA, TICs_Aprender_CABA, by="Codigos")
+```
+
+Finalmente, renombramos las respuestas para que sea más claro visualmente:
+
+```{r tabla 5, message = FALSE, results = FALSE}
+Final_CABA$Codigos[Final_CABA$Codigos == 1] <- "Sí"
+Final_CABA$Codigos[Final_CABA$Codigos == 2] <- "No"
+Final_CABA$Codigos[Final_CABA$Codigos == -1] <- "No corresponde"
+Final_CABA$Codigos[Final_CABA$Codigos == -6] <- "Multimarca"
+Final_CABA$Codigos[Final_CABA$Codigos == -9] <- "Blanco"
+View(Final_CABA)
+```
+
+
+$~$
+
+******
+******
+
+# **Análisis de ambas brechas**
+
+******
+******
+
+$~$
+
+
+Ya unidas, vamos a filtrar por nivel socioecónomico para ver si hay alguna diferencia notable.
+En primer lugar, filtramos por alumnos de CABA con Nivel Socioeconómico bajo:
+
+```{r nivel, message = FALSE, results = FALSE}
+Indice_SEB <- filter(Alumnos_CABA, isocioa == 1)
+```
+
+Habiendo obtenido una tabla de Nivel Socioeconómico bajo, analizamos dos parámetros. Comenzamos con las ganas de aprender nuevas tecnologías:
+
+```{r nivel 2, message = FALSE, results = FALSE}
+NT_Indice_SE <- group_by(Indice_SEB, ap37a) %>%
+  summarise(Nuevas_Tecnologias = n())
+
+NT_Indice_SE <- rename(NT_Indice_SE, Codigos=ap37a)
+
+NT_Indice_SE$Codigos[NT_Indice_SE$Codigos == 1] <- "Sí"
+NT_Indice_SE$Codigos[NT_Indice_SE$Codigos == 2] <- "No"
+NT_Indice_SE$Codigos[NT_Indice_SE$Codigos == -1] <- "No corresponde"
+NT_Indice_SE$Codigos[NT_Indice_SE$Codigos == -6] <- "Multimarca"
+NT_Indice_SE$Codigos[NT_Indice_SE$Codigos == -9] <- "Blanco"
+
+View(NT_Indice_SE)
+```
+
+Seguimos con la disponibilidad de internet:
+
+```{r nivel 3, message = FALSE, results = FALSE}
+Computadoras_Indice_SE <- group_by(Indice_SEB, ap7d) %>%
+  summarise(Disponibilidad_Internet = n()) %>%
+  rename(Codigos=ap7d)
+
+Computadoras_Indice_SE$Codigos[Computadoras_Indice_SE$Codigos == 1] <- "Sí"
+Computadoras_Indice_SE$Codigos[Computadoras_Indice_SE$Codigos == 2] <- "No"
+Computadoras_Indice_SE$Codigos[Computadoras_Indice_SE$Codigos == -1] <- "No corresponde"
+Computadoras_Indice_SE$Codigos[Computadoras_Indice_SE$Codigos == -6] <- "Multimarca"
+Computadoras_Indice_SE$Codigos[Computadoras_Indice_SE$Codigos == -9] <- "Blanco"
+
+View (Computadoras_Indice_SE)
+```
+
+En segundo lugar, volvemos a la tabla original para filtrar y realizar el mismo análisis en Nivel Socioeconómico alto:
+
+```{r nivel 4, message = FALSE, results = FALSE}
+Indice_SEA <- filter(Alumnos_CABA, isocioa == 3) %>%
+  group_by(ap37a) %>%
+  summarise(Nuevas_Tecnologias = n()) %>%
+  rename(Codigos=ap37a)
+
+Indice_SEA$Codigos[Indice_SEA$Codigos == 1] <- "Sí"
+Indice_SEA$Codigos[Indice_SEA$Codigos == 2] <- "No"
+Indice_SEA$Codigos[Indice_SEA$Codigos == -1] <- "No corresponde"
+Indice_SEA$Codigos[Indice_SEA$Codigos == -6] <- "Multimarca"
+Indice_SEA$Codigos[Indice_SEA$Codigos == -9] <- "Blanco"
+
+View(Indice_SEA)
+```
+
+No vemos diferencias significativas al analizar según índice socioeconómico.
+
+$~$
+
+******
+******
+
+# **Gráficos**
+
+******
+******
+
+$~$
+
+Para graficar, utilizaremos siempre la paleta de colores del diseño de marca Tech Truck
+
+$~$
+
+En primer lugar, veamos la disponibilidad de computadoras en el hogar: 
+
+```{r grafico, message = FALSE}
+Computadoras_CABA$Codigos[Computadoras_CABA$Codigos == 1] <- "Sí"
+Computadoras_CABA$Codigos[Computadoras_CABA$Codigos == 2] <- "No"
+Computadoras_CABA$Codigos[Computadoras_CABA$Codigos == -9] <- "Blanco"
+
+Grafico_Computadoras <- drop_na(Computadoras_CABA) %>%
+  filter(Codigos == "Sí" | Codigos == "No" | Codigos == "Blanco") %>%
+  ggplot(aes(x=reorder (Codigos, Alumnos_con_computadora), y=Alumnos_con_computadora, fill=Codigos))+
+  geom_bar(stat = "identity")+
+  scale_fill_manual(values=c("#A07D93", "#F0A36b", "#CA8E86"))+
+  theme_minimal() +
+  theme(panel.background = element_rect(fill = '#6576A4')) +
+  ylab("Cantidad")+
+  xlab("Respuestas")+
+  labs(fill = "Referencias")+
+  ggtitle("¿Tienen computadora en sus casas?")
+
+Grafico_Computadoras
+```
+
+## Gráfico 1: Disponibilidad de computadoras en el hogar
+
+$~$
+
+En segundo lugar, veamos la disponibilidad de internet en el hogar: 
+
+```{r grafico 2, message = FALSE}
+Internet_CABA$Codigos[Internet_CABA$Codigos == 1] <- "Sí"
+Internet_CABA$Codigos[Internet_CABA$Codigos == 2] <- "No"
+Internet_CABA$Codigos[Internet_CABA$Codigos == -9] <- "Blanco"
+
+Grafico_Internet <- drop_na(Internet_CABA) %>%
+  filter(Codigos == "Sí" | Codigos == "No" | Codigos == "Blanco") %>%
+  ggplot(aes(x= reorder(Codigos, Alumnos_con_internet), y=Alumnos_con_internet, fill=Codigos))+
+  geom_bar(stat = "identity")+
+  scale_fill_manual(values=c("#A07D93", "#F0A36b", "#CA8E86"))+
+  theme_minimal() +
+  theme(panel.background = element_rect(fill = '#6576A4')) +
+  ylab("Cantidad")+
+  xlab("Respuestas")+
+  labs(fill = "Referencias")+
+  ggtitle("¿Tienen internet en sus casas?")
+
+Grafico_Internet
+```
+
+## Gráfico 2: Disponibilidad de internet en el hogar
+
+$~$
+
+En tercer lugar, veamos el uso de TICs en la escuela: 
+
+```{r grafico 3, message = FALSE}
+TICs_CABA$Codigos[TICs_CABA$Codigos == 1] <- "Sí"
+TICs_CABA$Codigos[TICs_CABA$Codigos == 2] <- "No"
+TICs_CABA$Codigos[TICs_CABA$Codigos == -1] <- "No corresponde"
+TICs_CABA$Codigos[TICs_CABA$Codigos == -9] <- "Blanco"
+
+Grafico_TICs <- ggplot(TICs_CABA, aes(x=reorder (Codigos, Uso_TICs), y=Uso_TICs, fill=Codigos))+
+  geom_bar(stat = "identity")+
+  scale_fill_manual(values=c("#A07D93", "#F0A36b", "#CA8E86"))+
+  theme_minimal() +
+  theme(panel.background = element_rect(fill = '#6576A4')) +
+  geom_text(aes(label=Uso_TICs), position=position_dodge(width=0.9), vjust=-0.25) +
+  ylab("Cantidad")+
+  xlab("Respuestas")+
+  labs(fill = "Referencias")+
+  ggtitle("¿Usan TICs en la escuela?")
+
+Grafico_TICs
+```
+
+## Gráfico 3: Uso de TICs en la escuela
+
+$~$
+
+Finalmente, hagamos un gráfico interactivo para detallar los resultados de la encuesta sobre la enseñanza de TICs en las escuelas:
+
+```{r grafico 4, message = FALSE}
+Aprender_Nuevas_Tecnologias_CABA$Codigos[Aprender_Nuevas_Tecnologias_CABA$Codigos == 1] <- "Sí"
+Aprender_Nuevas_Tecnologias_CABA$Codigos[Aprender_Nuevas_Tecnologias_CABA$Codigos == 2] <- "No"
+Aprender_Nuevas_Tecnologias_CABA$Codigos[Aprender_Nuevas_Tecnologias_CABA$Codigos == -1] <- "No corresponde"
+Aprender_Nuevas_Tecnologias_CABA$Codigos[Aprender_Nuevas_Tecnologias_CABA$Codigos == -9] <- "Blanco"
+
+
+Grafico_Nuevas_Tecnologias <-ggplot(Aprender_Nuevas_Tecnologias_CABA, aes(x=reorder (Codigos, Aprender_Tecnologias), y=Aprender_Tecnologias, fill=Codigos))+
+  geom_bar(stat = "identity")+
+  scale_fill_manual(values=c("#A07D93", "#F0A36b", "#CA8E86"))+
+  theme_minimal() +
+  theme(panel.background = element_rect(fill = '#6576A4')) +
+  ylab("Cantidad")+
+  xlab("Respuestas")+
+  labs(fill = "Referencias")+
+  ggtitle("¿Deberían enseñar nuevas tecnologías en la escuela?")
+
+ggplotly(Grafico_Nuevas_Tecnologias)
+```
+
+## Gráfico interactivo 1: Encuesta sobre la enseñanza de TICs en las escuelas
