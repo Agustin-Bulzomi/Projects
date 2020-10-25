@@ -1,0 +1,197 @@
+---
+title: <center> Mapa de prototipo para Tech Truck
+author: <center>Equipo Rojo Fuego
+date: <center>07/2020
+output: html_document
+---
+
+```{css, echo=FALSE}
+body{
+  font-family: Helvetica;
+  font-size: 11pt;
+  text-align:left
+}
+
+h1{
+  font-size: 16pt;
+  text-align:center
+}
+h2{
+  font-size: 9pt;
+  text-align:left
+}
+```
+
+$~$
+
+En el siguiente informe se preparará el mapa que grafique nuestro prototipo, el cual se aplicará en el barrio de Flores y en un número reducido de escuelas.
+
+$~$
+
+******
+******
+
+# **Preparación**
+
+******
+******
+
+$~$
+
+Corremos las librerías:
+
+```{r liberias, message = FALSE, results = FALSE}
+library(tidyverse)
+library(leaflet)
+library(sf)
+library(sqldf)
+```
+
+Bajamos los datasets que vamos a usar:
+
+```{r censal, message = FALSE, results = FALSE}
+Radio_Censal <- st_read("http://cdn.buenosaires.gob.ar/datosabiertos/datasets/informacion-censal-por-radio/caba_radios_censales.geojson")
+Establecimientos_Educativos <- st_read("http://cdn.buenosaires.gob.ar/datosabiertos/datasets/establecimientos-educativos/establecimientos-educativos.geojson")
+Barrio<- st_read("http://cdn.buenosaires.gob.ar/datosabiertos/datasets/barrios/barrios.geojson")
+
+```
+
+$~$
+
+******
+******
+
+# **Análisis de vulnerabilidad**
+
+******
+******
+
+$~$
+
+Calculamos las NBI con respecto a la población:
+
+```{r NBI, message = FALSE, results = FALSE, fig.align = 'center'}
+ggplot(Radio_Censal) +
+  geom_sf(mapping = aes(fill = HOGARES_NBI/POBLACION) )
+```
+
+## Fig. 1: Tasa de hogares con NBI sobre población
+
+$~$
+
+Corremos el radio censal para conocer las zonas más vulnerables:
+
+```{r NBI 2, message = FALSE, fig.align = 'center'}
+Radio_Censal <- st_transform(Radio_Censal, 4326)
+pal_fun <- colorQuantile("YlOrRd", NULL, n = 5)
+p_popup <- paste0("<strong>Densidad de NBI: </strong>", Radio_Censal$HOGARES_NBI)
+leaflet(Radio_Censal) %>%
+  addPolygons(
+    stroke = FALSE, 
+    fillColor = ~pal_fun(HOGARES_NBI),
+    fillOpacity = 0.8, smoothFactor = 0.5,
+    popup = p_popup) %>%
+  addTiles()
+```
+
+## Fig. 2: Zonas de CABA según vulnerabilidad
+
+$~$
+
+******
+******
+
+# **Análisis de establecimientos educativos**
+
+******
+******
+
+$~$
+
+Filtramos establecimientos educativos secundarios:
+
+```{r filter, message = FALSE, results = FALSE}
+Establecimientos_Educativos %>% filter(str_detect(nivel,"^Secundario+.*"))
+```
+
+Seleccionamos modalidad común / adolescente y establecimientos públicos de Flores:
+
+```{r filter 2, message = FALSE, results = FALSE}
+Establecimientos_Educativos <- Establecimientos_Educativos %>%
+  filter( (DEPFUN != "Dir Gral de Educación de Gestión Privada") & str_detect(nivel,"^Secundario Común+.*") & (BARRIO == "FLORES") )
+
+```
+
+Reproyectamos:
+
+```{r reproyección, message = FALSE, results = FALSE}
+Barrio <- Barrio %>% filter(barrio == "FLORES")
+Barrio <- st_transform(Barrio, 4326)
+```
+
+Preparamos los datasets, separando los centros educativos que serán nuestro prototipo de las demás escuelas en Flores:
+
+```{r separación, message = FALSE, results = FALSE}
+unique(Establecimientos_Educativos$NOMBRE_EST)
+
+Establecimientos_Estudiados <- Establecimientos_Educativos[-c(2, 3, 5, 6, 7, 9),] 
+Todos <- Establecimientos_Educativos[-c(1, 4, 8),] 
+```
+
+$~$
+
+******
+******
+
+# **Preparación del mapa prototipo**
+
+******
+******
+
+$~$
+
+Bajamos los íconos que vamos a usar para nuestro pop-up y para diferenciar las escuelas:
+
+```{r íconos, message = FALSE, results = FALSE} 
+Icono_Bus <- makeIcon(
+  iconUrl = "https://icon-icons.com/downloadimage.php?id=100552&root=1465/PNG/512/&file=605bus_100552.png",
+  iconWidth = 25, iconHeight = 25)
+
+Icono_Escuela <- makeIcon(
+  iconUrl = "https://icon-icons.com/downloadimage.php?id=126269&root=2070/PNG/512/&file=school_icon_126269.png",
+  iconWidth = 25, iconHeight = 25)
+
+```
+
+Reproyectamos y armamos nuestros pop-ups:
+
+```{r popups, message = FALSE, results = FALSE}
+Radio_Censal <- st_transform(Radio_Censal, 4326) 
+pal_fun <- colorQuantile("YlOrRd", NULL, n = 5)
+p_popup_sv <- paste0("<strong>Densidad de NBI: </strong>", (Radio_Censal$HOGARES_NBI/Radio_Censal$POBLACION))
+p_popup_ee <- paste0("<strong>Nombre: </strong>", Establecimientos_Educativos$NOMBRE_EST, 
+                     " <strong>Modalidad: </strong>", Establecimientos_Educativos$NIVMOD)
+```
+
+Creamos el mapa interactivo resaltando nuestro barrio prototipo (Flores) y poniendo las tres escuelas (seleccionadas por ser zonas rojas, de alta vulnerabilidad):
+
+```{r mapa, message = FALSE, fig.align = 'center'}
+leaflet(data = Radio_Censal) %>% 
+  addTiles() %>%
+  addPolygons(
+    stroke = FALSE, 
+    fillColor = ~pal_fun(HOGARES_NBI),
+    fillOpacity = 0.3, smoothFactor = 0.5,
+    popup = p_popup_sv) %>%
+  addPolylines(data = Barrio, color = "#6576A4", fill = "#6576A4",
+               fillColor = 
+                 "#6576A4") %>%
+  addMarkers(data = Todos, 
+             icon = Icono_Escuela, 
+             popup = p_popup_ee)%>%
+  addMarkers(data = Establecimientos_Estudiados, 
+             icon = Icono_Bus, 
+             popup = p_popup_ee)
+```
+
+## Fig. 3: Mapa interactivo de vulnerabilidad con establecimientos educativos de Flores

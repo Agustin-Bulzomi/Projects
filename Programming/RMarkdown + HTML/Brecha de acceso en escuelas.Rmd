@@ -1,0 +1,216 @@
+---
+title: <center>Brecha de acceso en escuelas
+author: <center>Equipo Rojo Fuego
+date: <center>07/2020
+output: html_document
+---
+
+```{css, echo=FALSE}
+body{
+  font-family: Helvetica;
+  font-size: 11pt;
+  text-align:left
+}
+
+h1{
+  font-size: 16pt;
+  text-align:center
+}
+h2{
+  font-size: 9pt;
+  text-align:left
+}
+```
+
+$~$
+
+En el siguiente informe se estudiarán las brechas de acceso en escuelas utilizando una base de datos del DIEE.
+
+$~$
+
+******
+******
+
+# **Preparación**
+
+******
+******
+
+$~$
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Corremos las librerías:
+
+```{r librerías, message = FALSE, results = FALSE}
+library(readr)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(plotly)
+```
+
+El siguiente dataset será utilizado para ver en qué situación se encuentran las escuelas de CABA con respecto a la brecha de acceso:
+
+```{r dataset, message = FALSE, results = FALSE, warning = FALSE}
+Caracteristicas <- read_delim("https://media.githubusercontent.com/media/Agustin-Bulzomi/Projects/main/Programming/Support_Files/Caracteristicas.csv", ";", escape_double = FALSE, trim_ws = TRUE)
+```
+
+$~$
+
+******
+******
+
+# **Análisis de brecha de acceso**
+
+******
+******
+
+$~$
+
+Primero, filtramos la base por las escuelas estatales ubicadas en CABA y seleccionamos la columna que consulta sobre la conexión a internet en las aulas:
+
+```{r internet, message = FALSE, results = FALSE}
+Escuelas <- filter(Caracteristicas, provincia == "Ciudad de Buenos Aires",
+                   sector == "Estatal") %>%
+  select("Espacios con conexión - En las aulas")
+```
+
+Para poder analizar la tabla, cambiamos las respuestas "X" por "Sí" y los campos vacios (NA) por "No"
+
+```{r internet 2, message = FALSE, results = FALSE}
+Escuelas$"Espacios con conexión - En las aulas"[Escuelas$"Espacios con conexión - En las aulas" == "X"] <- "Sí"
+Escuelas$"Espacios con conexión - En las aulas"[is.na(Escuelas$"Espacios con conexión - En las aulas")] <- "No"
+View(Escuelas)
+```
+
+Renombramos la columna y calculamos el total de escuelas que tienen internet en las aulas:
+
+```{r internet 3, message = FALSE, results = FALSE}
+Escuelas <- rename(Escuelas, Respuestas="Espacios con conexión - En las aulas")
+Total <- group_by(Escuelas, Respuestas)%>%
+  summarise(Total_Internet_Aula = n())
+
+View(Total)
+```
+
+Ahora, vamos a proceder de la misma manera para averiguar si las escuelas tienen sala o laboratorio de informática.
+Primero, filtramos por escuelas estatales de CABA y seleccionamos la columna con la información requerida:
+
+```{r sala, message = FALSE, results = FALSE}
+Laboratorio <- filter(Caracteristicas, provincia == "Ciudad de Buenos Aires",
+                      sector == "Estatal") %>%
+  select("Dispone de sala o laboratorio de informática - Si")
+```
+
+Renombramos la columna, las respuestas "X" por "Sí" y los NA por "No". Luego, calculamos el total de respuestas:
+
+```{r sala 2, message = FALSE, results = FALSE}
+Laboratorio$"Dispone de sala o laboratorio de informática - Si"[Laboratorio$"Dispone de sala o laboratorio de informática - Si" == "X"] <- "Si"
+Laboratorio$"Dispone de sala o laboratorio de informática - Si"[is.na(Laboratorio$"Dispone de sala o laboratorio de informática - Si")] <- "No"
+
+Laboratorio <- rename(Laboratorio, Respuestas="Dispone de sala o laboratorio de informática - Si")
+
+Lab_Total <- group_by(Laboratorio, Respuestas)%>%
+  summarise(Total_Lab = n())
+View(Lab_Total)
+```
+
+Finalmente, unimos ambas tablas para ver todo en la misma:
+
+```{r internet y sala, message = FALSE, results = FALSE}
+Internet_Lab <- left_join(Total, Lab_Total, by="Respuestas")
+View(Internet_Lab)
+```
+
+$~$
+
+******
+******
+
+# **Gráficos**
+
+******
+******
+
+$~$
+
+Para graficar, utilizaremos siempre la paleta de colores del diseño de marca Tech Truck.
+
+$~$
+
+Comenzamos comparando las escuelas que tienen internet en el aula con las que no:
+
+```{r gráfico, message = FALSE, fig.align = 'center'}
+Grafico_Escuelas <-ggplot(Total, aes(x=Respuestas, y=Total_Internet_Aula, fill=Respuestas))+
+  geom_bar(stat = "identity")+
+  scale_fill_manual(values=c("#CA8E86", "#A07D93", "#F0A36b" ))+
+  theme_minimal() +
+  theme(panel.background = element_rect(fill = '#6576A4')) +
+  geom_text(aes(label=Total_Internet_Aula),  position = position_stack(vjust = 0.5), fontface = "bold") +
+  ylab("Cantidad")+
+  xlab("Respuestas")+
+  labs(fill = "Referencias")+
+  ggtitle("¿Tienen internet en el aula?")
+
+Grafico_Escuelas
+```
+
+## Gráfico de barras 1: Internet en el aula
+
+$~$
+
+Hacemos el gráfico interactivo usando plotly:
+
+```{r gráfico 2, message = FALSE, fig.align = 'center'}
+ggplotly(Grafico_Escuelas) %>% layout(margin = list(r = 100))
+```
+
+## Gráfico de barras interactivo 1: Internet en el aula
+
+$~$
+
+Ahora, graficamos la comparación entre escuelas que tienen laboratorio/sala de computación y las que no:
+
+```{r gráfico 3, message = FALSE, fig.align = 'center'}
+Grafico_Laboratorio <-ggplot(Lab_Total, aes(x=reorder (Respuestas, Total_Lab), y=Total_Lab, fill=Respuestas))+
+  geom_bar(stat = "identity")+
+  scale_fill_manual(values=c("#CA8E86", "#A07D93", "#F0A36b" ))+
+  theme_minimal() +
+  theme(panel.background = element_rect(fill = '#6576A4')) +
+  geom_text(aes(label=Total_Lab),  position = position_stack(vjust = 0.5), fontface = "bold") +
+  ylab("Cantidad")+
+  xlab("Respuestas")+
+  labs(fill = "Referencias")+
+  ggtitle("¿Tienen sala de computación?")
+
+Grafico_Laboratorio
+```
+
+## Gráfico de barras 2: Sala de laboratorio en la escuela
+
+$~$
+
+Nuevamente, hacemos el gráfico interactivo:
+
+```{r gráfico 4, message = FALSE, fig.align = 'center'}
+ggplotly(Grafico_Laboratorio) %>% layout(margin = list(r = 100))
+```
+
+## Gráfico de barras interactivo 2: Sala de laboratorio en la escuela
+
+$~$
+
+******
+******
+
+# **Conclusión**
+
+******
+******
+
+$~$
+
+En estos gráficos podemos ver que, si bien la brecha de acceso en el ámbito escolar se redujo, sigue existiendo y es necesario trabajar para reducirla.
