@@ -54,7 +54,7 @@ library(plotly)
 Bajamos los datasets que vamos a usar:
 
 ```{r dataset, message = FALSE, results = FALSE, warning = FALSE}
-Aprender <- read_delim("https://media.githubusercontent.com/media/Agustin-Bulzomi/Projects/main/Programming/Support_Files/Aprender%202017%20-%20Secundaria.csv", "\t", escape_double = FALSE, trim_ws = TRUE)
+Aprender <- read_delim("https://media.githubusercontent.com/media/Agustin-Bulzomi/Projects/main/Programming/Public%20Policies%20Lab%20(R)/Support_Files/Aprender%202017%20-%20Secundaria.csv", "\t", escape_double = FALSE, trim_ws = TRUE)
 ```
 
 Comenzaremos preparando los datasets y procesándolos para obtener la información que necesitamos, para finalmente presentar todos los gráficos que expongan lo analizado.

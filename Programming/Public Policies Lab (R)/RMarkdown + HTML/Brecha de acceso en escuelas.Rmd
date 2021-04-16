@@ -55,7 +55,7 @@ library(plotly)
 El siguiente dataset será utilizado para ver en qué situación se encuentran las escuelas de CABA con respecto a la brecha de acceso:
 
 ```{r dataset, message = FALSE, results = FALSE, warning = FALSE}
-Caracteristicas <- read_delim("https://media.githubusercontent.com/media/Agustin-Bulzomi/Projects/main/Programming/Support_Files/Caracteristicas.csv", ";", escape_double = FALSE, trim_ws = TRUE)
+Caracteristicas <- read_delim("https://media.githubusercontent.com/media/Agustin-Bulzomi/Projects/main/Programming/Public%20Policies%20Lab%20(R)/Support_Files/Caracteristicas.csv", ";", escape_double = FALSE, trim_ws = TRUE)
 ```
 
 $~$
