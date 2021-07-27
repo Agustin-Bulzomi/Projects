@@ -1,7 +1,7 @@
 # Cryptocurrencies
 
 ## ENGLISH:
-This was the last group project for the Data Science course in Digital House. 23 cryptocurrencies were selected, with historic data of volume, opening and closing prices and more to analyse using many libraries.
+This was the last group project for the Data Science course in Digital House. 23 cryptocurrencies were selected, with historic data of volume, opening and closing prices, etc. to analyse its volatility, heterogeneity and other characteristics using clustering and time series.
 
 3 Jupyter Notebooks were made:
 - 1) Data wrangling & visualization
@@ -14,7 +14,7 @@ https://docs.google.com/presentation/d/1Lqjv_OW0uaBOKqH6ptH0ajVP4Ib8H-qKRjkTR_7U
 
 ## SPANISH:
 
-Este fue el último proyecto grupal para el curso de Data Science de Digital House. 23 criptomonedas fueron seleccionadas, con datos históricos de volumen, precio de apertura, cierre y demás para analizar usando varias librerías.
+Este fue el último proyecto grupal para el curso de Data Science de Digital House. 23 criptomonedas fueron seleccionadas, con datos históricos de volumen, precio de apertura, cierre y demás para analizar su volatilidad, heterogeneidad y otras características usando clustering y series de tiempo.
 
 3 Jupyter Notebooks fueron creadas:
 - 1) Limpieza y visualización de datos
