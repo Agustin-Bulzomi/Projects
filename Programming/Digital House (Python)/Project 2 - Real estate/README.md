@@ -1,7 +1,7 @@
-# Price of properties
+# Real estate
 
 ## ENGLISH:
-This was the second group project for the Data Science course in Digital House. We used machine learning to try to predict property prices based on several variables such as neighbourhood, amenities, size, etc.
+This was the second group project for the Data Science course in Digital House. We used machine learning to try to predict real estate prices based on several variables such as neighbourhood, amenities, size, etc.
 
 3 Jupyter Notebooks were made:
 1) Data wrangling & basic exploratory analysis
