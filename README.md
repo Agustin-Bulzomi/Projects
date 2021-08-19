@@ -6,12 +6,12 @@ This repository works as a storage for codes and multimedia that I've created fo
 
 1) Programming:
 - Open Government (Python): in 2021 I coded two Jupyter Notebooks to clean some databases and perform EDA as requested by a job offer's technical examination. In both of them, 7 years of user data from the Government of the Autonomous City of Buenos Aires's public bicycle system are analysed to infer, in a PDF report, strategies or policies for both the public and the private sector.
-- Digital House (Python): from 2020 to 2021 I went through a data science course, where I've learned data wrangling, machine learning and visualization. The examination consisted in 4 projects to be done in different groups. Themes of the projects include analysis of real estate, politics and cryptofinance. There was an important learning curve, so the final project is better than the previous one and so on. All support files are available in the namesake folder, but are not necessary as the codes pull from GitHub to read the pertinent .csv files.
+- Digital House (Python): from 2020 to 2021 I attended a data science course, where I've learned data wrangling, machine learning and visualization. The examination consisted in 4 projects to be done in different groups. Themes of the projects include analysis of real estate, politics and cryptofinance. There was an important learning curve, so the final project is better than the previous one and so on. All support files are available in the namesake folder, but are not necessary as the codes pull from GitHub to read the pertinent .csv files.
 - Macros (Autohotkey): in 2016 I developed some rudimentary macros for data input automation in ecExpense. They could be improved considering I was barely starting with AutoHotkey: since the videos were recorded I've been acquiring more knowledge. For legal purposes, I've blurred sensitive information from the videos.
 - Public Policies Lab (R): in a college elective, which asked us to form teams and prepare a project using R, we've created three RMarkdown files with basic data wrangling, CSS configuration and visualization. The main theme was digital education. All support files are available in the namesake folder, but are not necessary as the codes pull from GitHub to read the pertinent .csv files.
 
 2) Design:
-- In the aforementioned subject, I designed a brochure that would promote our project: "Tech Truck"
+- In the aforementioned college elective I designed a brochure that would promote our project: "Tech Truck"
 - In the Ministry of Education of Argentina I designed an app's front end and some reports. Since their information can't be shown, a report's front page and another random one with alternative text is uploaded.
 
 ## SPANISH:
